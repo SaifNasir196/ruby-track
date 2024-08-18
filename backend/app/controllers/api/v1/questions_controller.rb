@@ -31,7 +31,7 @@ module Api
                 messages: [
                   {
                     role: "system",
-                    content: "Rewrite the following complaint text to make it clearer and more concise:"
+                    content: "Rewrite the following complaint text to make it clearer and more concise. Do not say anything else, only rewrite:"
                   },
                   {
                     role: "user",
@@ -75,10 +75,35 @@ module Api
 
           new_tag = tag_generation_response.dig("choices", 0, "message", "content")
 
+          # Generate a 5-word summary of the user's question
+          summary_response = openai_client.chat(
+            parameters: {
+              model: "gpt-4o-mini",
+              messages: [
+                {
+                  role: "system",
+                  content: "Provide a 5-word maximum summary of the following question. Do not say anything else. Only provide the summary:"
+                },
+                {
+                  role: "user",
+                  content: question_text
+                }
+              ],
+              max_tokens: 10  # Limit response to a short summary
+            }
+          )
+
+          question_summary = summary_response.dig("choices", 0, "message", "content")
+
           # Rails.logger.info "Transformed Result: #{transformed_results.inspect}"
           # Rails.logger.info "Generated Tag: #{new_tag}"
 
-          render json: { question: question_text, results: transformed_results, tag: new_tag.strip }, status: :ok
+          render json: { 
+            question: question_text, 
+            summary: question_summary.strip,  # Include the summary in the response
+            results: transformed_results, 
+            tag: new_tag.strip 
+          }, status: :ok
         else
           render json: { error: "Failed to generate embedding." }, status: :unprocessable_entity
         end
