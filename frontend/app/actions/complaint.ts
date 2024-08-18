@@ -1,35 +1,33 @@
-"use server"
+"use server";
 
-import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 
-
 // Create a new complaint
-export async function createComplaint(complaint: string): Promise<any> {
-    const { userId } = auth();
-    // console.log(typeof userId);
-    if (!userId) throw new Error('Please sign in to submit complaint',);
+export async function createComplaint(
+  complaint: string,
+  tag: string,
+  summary: string
+): Promise<any> {
+  const { userId } = auth();
+  if (!userId) throw new Error('Please sign in to submit complaint');
 
-    const tag="tag" // generate tag
-    const summary="summary" // generate summary
+  if (!complaint) throw new Error('Complaint cannot be empty');
 
-    if (!complaint) throw new Error('Complaint cannot be empty');
-
-    try {
-        const complaintObj = await prisma.complaint.create({
-            data: {
-                userId: String(userId),
-                content: complaint,
-                tag,
-                summary
-            },
-        });
-        return { id: complaintObj.id };
-    } catch (error) {
-        console.error(error);
-        throw new Error('Failed to create complaint, please try again later');
-    }
+  try {
+    const complaintObj = await prisma.complaint.create({
+      data: {
+        userId: String(userId),
+        content: complaint,
+        tag,
+        summary,
+      },
+    });
+    return { id: complaintObj.id };
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to create complaint, please try again later');
+  }
 }
 
 // Get all complaints for a user
@@ -55,7 +53,7 @@ export async function getUserComplaints(): Promise<any> {
             createdAt: complaint.createdAt.toISOString(),
         }));
 
-        console.log('serializedComplaints', serializedComplaints);
+        // console.log('serializedComplaints', serializedComplaints);
 
         return JSON.stringify({ data: serializedComplaints });
     } catch (error) {

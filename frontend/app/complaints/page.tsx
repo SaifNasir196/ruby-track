@@ -70,7 +70,7 @@ export default function Component() {
     if (isError)
         return <div>Error loading forms: {error.message}</div>;
 
-    console.log('filteredComplaints', filteredComplaints);
+    // console.log('filteredComplaints', filteredComplaints);
     return (
         <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
             <div className="mb-8">

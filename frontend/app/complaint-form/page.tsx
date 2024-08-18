@@ -3,8 +3,9 @@
 function Page() {
   const complaintRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
+  const [similarComplaints, setSimilarComplaints] = useState<any[]>([]);
   const { toast } = useToast();
-  const [similarComplaints, setSimilarComplaints] = useState<any[]>([]); // Consider defining a more specific type instead of any[]
+
   const {
     mutate: handleCreateComplaint,
     isPending,
@@ -19,23 +20,34 @@ function Page() {
       ) {
         throw new Error("Complaint cannot be empty");
       }
+
       const complaintText = complaintRef.current.value;
-      // Fetch similar complaints
-      const response = await fetch("https://backend-white-glitter-696.fly.dev/api/v1/questions", {
+
+      // Fetch similar complaints and tag from your backend
+      const response = await fetch("http://localhost:3001/api/v1/questions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ question: complaintText }),
       });
+
       if (!response.ok) {
         throw new Error("Failed to fetch similar complaints");
       }
+
       const data = await response.json();
-      setSimilarComplaints(data.results); // Adjusted based on the updated response structure
-      // Submit complaint
-      await createComplaint(complaintText);
-      complaintRef.current.value = ""; // Clear input after submission
+      setSimilarComplaints(data.results);
+
+      const tag = data.tag; // Assuming your API returns the tag
+      // console.log("data:", data);
+      const summary = "summary"; // Generate or get summary here
+
+      // Submit the complaint with tag and summary
+      await createComplaint(complaintText, tag, summary);
+
+      // Clear the input after submission
+      complaintRef.current.value = "";
     },
     onError: (error) => {
       console.error(error);

@@ -13,7 +13,7 @@ class PineconeService
     }
   end
 
-  def query(vector, top_k = 3)
+  def query(vector, top_k = 1)
     payload = {
       "vector" => vector,
       "topK" => top_k,

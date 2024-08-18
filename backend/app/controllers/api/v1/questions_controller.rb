@@ -27,7 +27,7 @@ module Api
             # Rewrite the complaint text using OpenAI
             rewrite_response = openai_client.chat(
               parameters: {
-                model: "gpt-4",  # Use chat model here
+                model: "gpt-4o-mini",  # Use chat model here
                 messages: [
                   {
                     role: "system",
@@ -51,10 +51,34 @@ module Api
               tags: metadata["tags"]
             }
           end
-        
-          Rails.logger.info "Transformed Result: #{transformed_results.inspect}"
-        
-          render json: { question: question_text, results: transformed_results }, status: :ok
+
+          # Collect all the tags from the results
+          collected_tags = transformed_results.map { |res| res[:tags] }.compact.join(", ")
+
+          # Generate a new tag based on the user's question and collected tags
+          tag_generation_response = openai_client.chat(
+            parameters: {
+              model: "gpt-4o-mini",
+              messages: [
+                {
+                  role: "system",
+                  content: "Based on the user's query and the following tags, suggest the most appropriate tag from the given options only. Do not suggest any of your own, and do not say anything else except the tag name. If there are no appropriate tags, simple say 'Null'."
+                },
+                {
+                  role: "user",
+                  content: "Query: #{question_text}, Tags: #{collected_tags}"
+                }
+              ],
+              max_tokens: 10  # Generate a concise tag
+            }
+          )
+
+          new_tag = tag_generation_response.dig("choices", 0, "message", "content")
+
+          # Rails.logger.info "Transformed Result: #{transformed_results.inspect}"
+          # Rails.logger.info "Generated Tag: #{new_tag}"
+
+          render json: { question: question_text, results: transformed_results, tag: new_tag.strip }, status: :ok
         else
           render json: { error: "Failed to generate embedding." }, status: :unprocessable_entity
         end
