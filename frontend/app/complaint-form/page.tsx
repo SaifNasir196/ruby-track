@@ -6,6 +6,11 @@ function Page() {
   const [similarComplaints, setSimilarComplaints] = useState<any[]>([]);
   const { toast } = useToast();
 
+  const apiUrl =
+    process.env.NODE_ENV === "production"
+      ? "https://backend-white-glitter-696.fly.dev/api/v1/questions"
+      : "http://localhost:3001/api/v1/questions";
+
   const {
     mutate: handleCreateComplaint,
     isPending,
@@ -24,7 +29,7 @@ function Page() {
       const complaintText = complaintRef.current.value;
 
       // Fetch similar complaints and tag from your backend
-      const response = await fetch("http://localhost:3001/api/v1/questions", {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,7 +46,7 @@ function Page() {
 
       const tag = data.tag; // Assuming your API returns the tag
       // console.log("data:", data);
-      const summary = "summary"; // Generate or get summary here
+      const summary = data.summary; // Generate or get summary here
 
       // Submit the complaint with tag and summary
       await createComplaint(complaintText, tag, summary);
