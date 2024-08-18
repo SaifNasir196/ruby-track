@@ -1,0 +1,32 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main  # Adjust this to the branch you want to trigger the deploy on
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.1  # Set this to your Ruby version
+
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        gem install bundler
+        bundle install
+
+    - name: Deploy to Fly.io
+      working-directory: ./backend
+      run: |
+        fly deploy
+      env:
+        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}  # Make sure to add your Fly.io API token in GitHub secrets
